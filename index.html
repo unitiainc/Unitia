@@ -3,121 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Unitia AI</title>
+    <title>Unitia Dashboard</title>
     <style>
-        body { font-family: sans-serif; margin: 0; background: #f0f2f5; color: #333; }
-        header { background: #1a73e8; color: white; padding: 15px; text-align: center; font-weight: bold; }
+        body { font-family: sans-serif; margin: 0; background: #f4f7f9; color: #333; padding-bottom: 80px; }
+        header { background: #1a73e8; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 1.2rem; }
+        
+        /* メインエリア */
         #main { padding: 15px; max-width: 600px; margin: auto; }
-        #status { text-align: center; font-size: 0.8rem; color: #666; margin-bottom: 10px; }
-        #result-area { background: white; padding: 15px; border-radius: 12px; min-height: 100px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        #transcript { color: #888; font-size: 0.9rem; margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #eee; }
-        #ai-response { white-space: pre-wrap; line-height: 1.6; }
-        #btn-container { text-align: center; position: fixed; bottom: 30px; left: 0; right: 0; }
-        #mic-btn { width: 70px; height: 70px; border-radius: 50%; border: none; background: #1a73e8; color: white; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        
+        /* 認識結果・AI回答 */
+        #transcript { color: #666; font-size: 0.85rem; border-bottom: 1px solid #eee; margin-bottom: 10px; padding-bottom: 5px; min-height: 1.2rem; }
+        #ai-response { white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; overflow-x: auto; }
+        
+        /* 操作ボタン */
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .action-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+        .copy-btn { background: #34a853; color: white; }
+        .table-btn { background: #fbbc05; color: white; }
+
+        /* 下部ナビゲーション */
+        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; height: 65px; align-items: center; }
+        .nav-item { flex: 1; text-align: center; font-size: 0.7rem; color: #666; cursor: pointer; }
+        .nav-item.active { color: #1a73e8; font-weight: bold; }
+        .nav-icon { font-size: 1.4rem; display: block; margin-bottom: 2px; }
+
+        /* 録音ボタン（中央） */
+        #mic-container { position: relative; top: -20px; }
+        #mic-btn { width: 60px; height: 60px; border-radius: 50%; border: none; background: #1a73e8; color: white; font-size: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; }
         #mic-btn.active { background: #ea4335; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .loading { font-style: italic; color: #999; }
     </style>
 </head>
 <body>
 
-<header>UNITIA AI 現場リスト</header>
+<header>UNITIA 現場ポータル</header>
+
 <div id="main">
-    <div id="status">ボタンを押して指示してください</div>
-    <div id="result-area">
+    <div class="card">
+        <div id="status" style="font-size: 0.8rem; color: #999; margin-bottom: 5px;">待機中</div>
         <div id="transcript"></div>
-        <div id="ai-response">ここに仕分けリストが表示されます</div>
+        <div id="ai-response">ここにAIの整理結果が表示されます。</div>
+        
+        <div class="btn-group" id="action-area" style="display: none;">
+            <button class="action-btn table-btn" onclick="requestTable()">📊 表形式で出力</button>
+            <button class="action-btn copy-btn" onclick="copyResult()">📋 コピー</button>
+        </div>
     </div>
 </div>
 
-<div id="btn-container">
-    <button id="mic-btn">🎤</button>
-</div>
+<nav>
+    <div class="nav-item active">
+        <span class="nav-icon">🏠</span>ホーム
+    </div>
+    <div id="mic-container">
+        <button id="mic-btn">🎤</button>
+    </div>
+    <div class="nav-item" onclick="alert('TODO機能は開発中です')">
+        <span class="nav-icon">✅</span>TODO
+    </div>
+</nav>
 
 <script>
-    // 【重要】 ' ' の中にAPIキーを正確に貼り付けてください。前後にスペースを入れないように注意！
-    const API_KEY = 'AIzaSyANR0vHTnaUwFkyW7kuSfN-5kTLDQErHOg'; 
+    const API_KEY = 'AIzaSyANR0vHTnaUwFkyW7kuSfN-5kTLDQErHOg'; // ←モデルgemini-3-flash-previewが動くキーを！
     
     const micBtn = document.getElementById('mic-btn');
     const transcriptDiv = document.getElementById('transcript');
     const aiResponseDiv = document.getElementById('ai-response');
     const statusDiv = document.getElementById('status');
+    const actionArea = document.getElementById('action-area');
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        statusDiv.innerText = "お使いのブラウザは音声認識に対応していません";
-    }
-
     const recognition = new SpeechRecognition();
     recognition.lang = 'ja-JP';
-    recognition.continuous = false;
-    recognition.interimResults = false;
 
-    let fullText = "";
+    let lastText = "";
 
     micBtn.onclick = () => {
         if (micBtn.classList.contains('active')) {
             recognition.stop();
         } else {
-            fullText = "";
             recognition.start();
         }
     };
 
     recognition.onstart = () => {
         micBtn.classList.add('active');
-        statusDiv.innerText = "聞き取り中...";
-        aiResponseDiv.innerText = "";
+        statusDiv.innerText = "音声を聞き取っています...";
+        actionArea.style.display = "none";
     };
 
     recognition.onend = () => {
         micBtn.classList.remove('active');
-        if (fullText) {
-            statusDiv.innerText = "AIがリストを作成中...";
-            analyzeText(fullText);
-        } else {
-            statusDiv.innerText = "聞き取れませんでした。もう一度試してください。";
+        if (lastText) {
+            statusDiv.innerText = "AIが整理しています...";
+            analyzeText(lastText, false);
         }
     };
 
     recognition.onresult = (event) => {
-        fullText = event.results[0][0].transcript;
-        transcriptDiv.innerText = "認識結果: " + fullText;
+        lastText = event.results[0][0].transcript;
+        transcriptDiv.innerText = lastText;
     };
 
-    async function analyzeText(text) {
-        aiResponseDiv.innerHTML = '<span class="loading">AIが仕分けしています...</span>';
-
-        const prompt = `あなたは不動産管理・DIYの助手です。以下の音声メモを、RC物件の管理に役立つように以下の3項目で箇条書きに整理して。
-        1. 倉庫から持参（在庫）
-        2. 新規購入（買い物）
-        3. その他タスク
-        入力メモ: "${text}"`;
+    async function analyzeText(text, isTableRequest) {
+        let prompt = `以下の音声メモを「倉庫から持参」「新規購入」「その他タスク」に分類して整理して。入力: "${text}"`;
+        if (isTableRequest) {
+            prompt = `以下の音声メモから、「項目名」「詳細」「区分（在庫/購入/タスク）」の3列の表を作成して。Markdown形式で出力して。入力: "${text}"`;
+        }
 
         try {
-            // v1beta に戻しました
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error.message);
-            }
-
             const data = await response.json();
-            const resultText = data.candidates[0].content.parts[0].text;
-            aiResponseDiv.innerText = resultText;
-            statusDiv.innerText = "仕分け完了！";
+            const result = data.candidates[0].content.parts[0].text;
+            aiResponseDiv.innerText = result;
+            statusDiv.innerText = "完了";
+            actionArea.style.display = "flex";
         } catch (e) {
-            aiResponseDiv.innerText = "エラー詳細: " + e.message;
-            statusDiv.innerText = "エラーが発生しました";
-            console.error(e);
+            aiResponseDiv.innerText = "エラー: " + e.message;
         }
+    }
+
+    function requestTable() {
+        if (!lastText) return;
+        statusDiv.innerText = "表を作成中...";
+        analyzeText(lastText, true);
+    }
+
+    async function copyResult() {
+        await navigator.clipboard.writeText(aiResponseDiv.innerText);
+        alert("クリップボードにコピーしました！シートに貼り付けられます。");
     }
 </script>
 </body>
