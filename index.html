@@ -10,10 +10,10 @@
         #main { padding: 15px; max-width: 600px; margin: auto; }
         #status { text-align: center; font-size: 0.8rem; color: #666; margin-bottom: 10px; }
         #result-area { background: white; padding: 15px; border-radius: 12px; min-height: 100px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .list-section { margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
-        .list-title { font-weight: bold; color: #1a73e8; font-size: 0.9rem; }
+        #transcript { color: #888; font-size: 0.9rem; margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #eee; }
+        #ai-response { white-space: pre-wrap; line-height: 1.6; }
         #btn-container { text-align: center; position: fixed; bottom: 30px; left: 0; right: 0; }
-        #mic-btn { width: 70px; height: 70px; border-radius: 50%; border: none; background: #1a73e8; color: white; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        #mic-btn { width: 70px; height: 70px; border-radius: 50%; border: none; background: #1a73e8; color: white; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; }
         #mic-btn.active { background: #ea4335; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         .loading { font-style: italic; color: #999; }
@@ -25,7 +25,7 @@
 <div id="main">
     <div id="status">ボタンを押して指示してください</div>
     <div id="result-area">
-        <div id="transcript" style="color: #888; font-size: 0.9rem; margin-bottom: 10px;"></div>
+        <div id="transcript"></div>
         <div id="ai-response">ここに仕分けリストが表示されます</div>
     </div>
 </div>
@@ -35,7 +35,8 @@
 </div>
 
 <script>
-    const API_KEY = 'AIzaSyANR0vHTnaUwFkyW7kuSfN-5kTLDQErHOg';
+    // 【重要】 ' ' の中にAPIキーを正確に貼り付けてください。前後にスペースを入れないように注意！
+    const API_KEY = 'AIzaSyANR0vHTnaUwFkyW7kuSfN-5kTLDQErHOg'; 
     
     const micBtn = document.getElementById('mic-btn');
     const transcriptDiv = document.getElementById('transcript');
@@ -43,9 +44,14 @@
     const statusDiv = document.getElementById('status');
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        statusDiv.innerText = "お使いのブラウザは音声認識に対応していません";
+    }
+
     const recognition = new SpeechRecognition();
     recognition.lang = 'ja-JP';
-    recognition.continuous = false; // 一回ごとに区切る
+    recognition.continuous = false;
+    recognition.interimResults = false;
 
     let fullText = "";
 
@@ -53,6 +59,7 @@
         if (micBtn.classList.contains('active')) {
             recognition.stop();
         } else {
+            fullText = "";
             recognition.start();
         }
     };
@@ -60,12 +67,17 @@
     recognition.onstart = () => {
         micBtn.classList.add('active');
         statusDiv.innerText = "聞き取り中...";
+        aiResponseDiv.innerText = "";
     };
 
     recognition.onend = () => {
         micBtn.classList.remove('active');
-        statusDiv.innerText = "AIがリストを作成中...";
-        analyzeText(fullText);
+        if (fullText) {
+            statusDiv.innerText = "AIがリストを作成中...";
+            analyzeText(fullText);
+        } else {
+            statusDiv.innerText = "聞き取れませんでした。もう一度試してください。";
+        }
     };
 
     recognition.onresult = (event) => {
@@ -74,25 +86,36 @@
     };
 
     async function analyzeText(text) {
-        if (!text) return;
-        aiResponseDiv.innerHTML = '<span class="loading">仕分け中...</span>';
+        aiResponseDiv.innerHTML = '<span class="loading">AIが仕分けしています...</span>';
 
-        const prompt = `あなたは不動産管理の助手です。以下の音声メモを読み取り、「倉庫から持参するもの（在庫）」「新しく購入するもの」「その他タスク」の3つに箇条書きで分類して。
-        
-入力メモ: "${text}"`;
+        const prompt = `あなたは不動産管理・DIYの助手です。以下の音声メモを、RC物件の管理に役立つように以下の3項目で箇条書きに整理して。
+        1. 倉庫から持参（在庫）
+        2. 新規購入（買い物）
+        3. その他タスク
+        入力メモ: "${text}"`;
 
         try {
+            // v1 APIを使用
             const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
             });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error.message);
+            }
+
             const data = await response.json();
             const resultText = data.candidates[0].content.parts[0].text;
             aiResponseDiv.innerText = resultText;
-            statusDiv.innerText = "完了！";
+            statusDiv.innerText = "仕分け完了！";
         } catch (e) {
-            aiResponseDiv.innerText = "エラーが発生しました。キーを確認してください。";
+            aiResponseDiv.innerText = "エラー詳細: " + e.message;
+            statusDiv.innerText = "エラーが発生しました";
             console.error(e);
         }
     }
