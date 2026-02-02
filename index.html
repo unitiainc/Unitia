@@ -1,105 +1,90 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+
+<!DOCTYPE html>
+<html lang="ja">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.7">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Helvetica Neue'}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 13.0px 'Helvetica Neue'; min-height: 15.0px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unitia Voice</title>
+    <link rel="manifest" href="data:application/manifest+json,{'name':'Unitia','short_name':'Unitia','display':'standalone','start_url':'.','background_color':'#ffffff','theme_color':'#007bff'}">
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; background: #f4f7f6; }
+        header { background: #007bff; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 1.2rem; }
+        #status { padding: 10px; text-align: center; color: #666; font-size: 0.9rem; }
+        #result-container { flex: 1; padding: 20px; overflow-y: auto; background: white; margin: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        #result { font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap; }
+        #btn-container { padding: 20px; text-align: center; }
+        #mic-btn { width: 80px; height: 80px; border-radius: 50%; border: none; background: #007bff; color: white; font-size: 2rem; box-shadow: 0 4px 15px rgba(0,123,255,0.4); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        #mic-btn.active { background: #dc3545; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    </style>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="ja"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;Unitia Voice&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;link rel="manifest" href="data:application/manifest+json,{'name':'Unitia','short_name':'Unitia','display':'standalone','start_url':'.','background_color':'#ffffff','theme_color':'#007bff'}"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>body { font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; background: #f4f7f6; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>header { background: #007bff; color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 1.2rem; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>#status { padding: 10px; text-align: center; color: #666; font-size: 0.9rem; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>#result-container { flex: 1; padding: 20px; overflow-y: auto; background: white; margin: 10px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>#result { font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>#btn-container { padding: 20px; text-align: center; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>#mic-btn { width: 80px; height: 80px; border-radius: 50%; border: none; background: #007bff; color: white; font-size: 2rem; box-shadow: 0 4px 15px rgba(0,123,255,0.4); cursor: pointer; -webkit-tap-highlight-color: transparent; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>#mic-btn.active { background: #dc3545; animation: pulse 1.5s infinite; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;header&gt;UNITIA - 現場メモ&lt;/header&gt;</p>
-<p class="p1">&lt;div id="status"&gt;ボタンを押して話してください&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;div id="result-container"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div id="result"&gt;&lt;/div&gt;</p>
-<p class="p1">&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;div id="btn-container"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;button id="mic-btn"&gt;🎤&lt;/button&gt;</p>
-<p class="p1">&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const micBtn = document.getElementById('mic-btn');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const resultDiv = document.getElementById('result');</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const statusDiv = document.getElementById('status');</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// 音声認識APIのセットアップ</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;</p>
-<p class="p2"><span class="Apple-converted-space">    </span></p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (!SpeechRecognition) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>statusDiv.innerText = "お使いのブラウザは音声認識非対応です";</p>
-<p class="p1"><span class="Apple-converted-space">    </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const recognition = new SpeechRecognition();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>recognition.lang = 'ja-JP';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>recognition.interimResults = true; // 途中経過を表示</p>
-<p class="p1"><span class="Apple-converted-space">        </span>recognition.continuous = true;<span class="Apple-converted-space">    </span>// 連続認識</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>let isListening = false;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>micBtn.onclick = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (!isListening) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>recognition.start();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>recognition.stop();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>recognition.onstart = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>isListening = true;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>micBtn.classList.add('active');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>statusDiv.innerText = "聞き取り中...";</p>
-<p class="p1"><span class="Apple-converted-space">        </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>recognition.onend = () =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>isListening = false;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>micBtn.classList.remove('active');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>statusDiv.innerText = "停止中（タップして再開）";</p>
-<p class="p1"><span class="Apple-converted-space">        </span>};</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>recognition.onresult = (event) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let finalTranscript = '';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>for (let i = event.resultIndex; i &lt; event.results.length; i++) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>let transcript = event.results[i][0].transcript;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>if (event.results[i].isFinal) {</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>finalTranscript += transcript + '\n';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (finalTranscript) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>resultDiv.innerText += finalTranscript;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>// 自動で一番下までスクロール</p>
-<p class="p1"><span class="Apple-converted-space">                </span>document.getElementById('result-container').scrollTop = document.getElementById('result-container').scrollHeight;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>};</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p1">&lt;/script&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+
+<header>UNITIA - 現場メモ</header>
+<div id="status">ボタンを押して話してください</div>
+
+<div id="result-container">
+    <div id="result"></div>
+</div>
+
+<div id="btn-container">
+    <button id="mic-btn">🎤</button>
+</div>
+
+<script>
+    const micBtn = document.getElementById('mic-btn');
+    const resultDiv = document.getElementById('result');
+    const statusDiv = document.getElementById('status');
+
+    // 音声認識APIのセットアップ
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+        statusDiv.innerText = "お使いのブラウザは音声認識非対応です";
+    } else {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'ja-JP';
+        recognition.interimResults = true; // 途中経過を表示
+        recognition.continuous = true;    // 連続認識
+
+        let isListening = false;
+
+        micBtn.onclick = () => {
+            if (!isListening) {
+                recognition.start();
+            } else {
+                recognition.stop();
+            }
+        };
+
+        recognition.onstart = () => {
+            isListening = true;
+            micBtn.classList.add('active');
+            statusDiv.innerText = "聞き取り中...";
+        };
+
+        recognition.onend = () => {
+            isListening = false;
+            micBtn.classList.remove('active');
+            statusDiv.innerText = "停止中（タップして再開）";
+        };
+
+        recognition.onresult = (event) => {
+            let finalTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                let transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript + '\n';
+                }
+            }
+            if (finalTranscript) {
+                resultDiv.innerText += finalTranscript;
+                // 自動で一番下までスクロール
+                document.getElementById('result-container').scrollTop = document.getElementById('result-container').scrollHeight;
+            }
+        };
+    }
+</script>
+
 </body>
 </html>
