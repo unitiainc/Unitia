@@ -3,130 +3,650 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Unitia Dashboard</title>
+    <title>UNITIA - RC物件管理アプリ</title>
     <style>
-        body { font-family: sans-serif; margin: 0; background: #f4f7f9; color: #333; padding-bottom: 80px; }
-        header { background: #1a73e8; color: white; padding: 15px; text-align: center; font-weight: bold; }
-        #main { padding: 15px; max-width: 600px; margin: auto; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        #ai-response { white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px; }
-        
-        /* 操作ボタン */
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; display: none; }
-        .action-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: bold; background: #34a853; color: white; cursor: pointer; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        /* ナビゲーション */
-        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #ddd; height: 65px; align-items: center; }
-        .nav-item { flex: 1; text-align: center; font-size: 0.7rem; color: #666; cursor: pointer; }
-        #mic-btn { width: 60px; height: 60px; border-radius: 50%; border: none; background: #1a73e8; color: white; font-size: 1.5rem; margin-top: -30px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        #mic-btn.active { background: #ea4335; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        
-        /* 設定ボタン */
-        #settings-btn { font-size: 1.2rem; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .mic-container {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .mic-button {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .mic-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+        }
+
+        .mic-button.recording {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .status-text {
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .transcript-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            min-height: 60px;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.6;
+            display: none;
+        }
+
+        .transcript-box.show {
+            display: block;
+        }
+
+        .result-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .result-container.show {
+            display: block;
+        }
+
+        .table-wrapper {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-stock {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-purchase {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-task {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .button-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .button-secondary {
+            background: #e9ecef;
+            color: #495057;
+            margin-top: 10px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .alert {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success.show {
+            display: block;
+        }
+
+        .api-key-notice {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .api-key-notice strong {
+            display: block;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
+    <div class="container">
+        <div class="header">
+            <h1>🏗️ UNITIA</h1>
+            <div class="subtitle">RC物件管理アシスタント</div>
+        </div>
 
-<header>UNITIA 現場ポータル</header>
+        <!-- APIキー設定通知 -->
+        <div class="api-key-notice">
+            <strong>⚠️ 初回設定が必要です</strong>
+            このアプリを使用するには、コード内の <code>GEMINI_API_KEY</code> にあなたのGemini APIキーを設定してください。
+        </div>
 
-<div id="main">
-    <div class="card">
-        <div id="status" style="font-size: 0.8rem; color: #999;">待機中（右下の⚙️からキーを登録してください）</div>
-        <div id="transcript" style="font-weight: bold; margin: 10px 0;"></div>
-        <div id="ai-response">音声を入力するとここに仕分け結果が出ます。</div>
-        <div class="btn-group" id="btn-group">
-            <button class="action-btn" onclick="copyResult()">📋 表形式をコピー</button>
+        <div class="card">
+            <h2 style="color: #333; margin-bottom: 20px; font-size: 20px;">🎤 現場音声メモ</h2>
+            
+            <div class="alert" id="errorAlert"></div>
+            <div class="success" id="successAlert"></div>
+
+            <div class="mic-container">
+                <button class="mic-button" id="micButton">
+                    🎤
+                </button>
+                <div class="status-text" id="statusText">タップして録音開始</div>
+            </div>
+
+            <div class="transcript-box" id="transcriptBox"></div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px; color: #666;">AIが仕分け中...</p>
+            </div>
+
+            <div class="result-container" id="resultContainer">
+                <h3 style="color: #333; margin-bottom: 15px; font-size: 18px;">📊 仕分け結果</h3>
+                <div class="table-wrapper" id="tableWrapper"></div>
+                <button class="button button-primary" id="copyButton">📋 クリップボードへコピー</button>
+                <button class="button button-secondary" id="newMemoButton">🎤 新しいメモを録音</button>
+            </div>
         </div>
     </div>
-</div>
 
-<nav>
-    <div class="nav-item">🏠ホーム</div>
-    <button id="mic-btn">🎤</button>
-    <div class="nav-item" id="settings-btn" onclick="setApiKey()">⚙️設定</div>
-</nav>
+    <div class="nav-bar">
+        <div class="nav-item active">
+            <div class="nav-icon">🏠</div>
+            <div>ホーム</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">✓</div>
+            <div>TODO</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">📷</div>
+            <div>写真</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">📝</div>
+            <div>記録</div>
+        </div>
+    </div>
 
-<script>
-    // キーはGitHubに書かず、ブラウザに保存させる
-    let API_KEY = localStorage.getItem('UNITIA_KEY') || '';
-
-    const micBtn = document.getElementById('mic-btn');
-    const statusDiv = document.getElementById('status');
-    const aiResponseDiv = document.getElementById('ai-response');
-    const transcriptDiv = document.getElementById('transcript');
-    const btnGroup = document.getElementById('btn-group');
-
-    function setApiKey() {
-        const key = prompt("Google APIキーを入力してください（ブラウザに保存されます）", API_KEY);
-        if (key) {
-            localStorage.setItem('UNITIA_KEY', key);
-            API_KEY = key;
-            statusDiv.innerText = "キーを登録しました。";
-        }
-    }
-
-    if (!API_KEY) statusDiv.innerText = "⚠️右下の⚙️ボタンからAPIキーを登録してください";
-
-    // 音声認識の設定
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'ja-JP';
-
-    let lastText = "";
-
-    micBtn.onclick = () => {
-        if (!API_KEY) { alert("先にAPIキーを登録してください"); return; }
-        if (micBtn.classList.contains('active')) {
-            recognition.stop();
-        } else {
-            recognition.start();
-        }
-    };
-
-    recognition.onstart = () => {
-        micBtn.classList.add('active');
-        statusDiv.innerText = "聞き取り中...";
-        btnGroup.style.display = "none";
-    };
-
-    recognition.onend = () => {
-        micBtn.classList.remove('active');
-        if (lastText) {
-            statusDiv.innerText = "AIが整理中...";
-            analyzeText(lastText);
-        }
-    };
-
-    recognition.onresult = (event) => {
-        lastText = event.results[0][0].transcript;
-        transcriptDiv.innerText = "認識結果: " + lastText;
-    };
-
-    async function analyzeText(text) {
-        const prompt = `以下の音声メモから、「項目名」「詳細」「区分（在庫/購入/タスク）」の3列のMarkdown表を作成して。入力: "${text}"`;
+    <script>
+        // =====================================
+        // 🔑 ここにあなたのGemini APIキーを設定
+        // =====================================
+        const GEMINI_API_KEY = 'AIzaSyCQ-RxYW5mGvsOXmhK0ppKvJ0rR3_DvI-Q';
         
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.message);
-            
-            aiResponseDiv.innerText = data.candidates[0].content.parts[0].text;
-            statusDiv.innerText = "仕分け完了";
-            btnGroup.style.display = "flex";
-        } catch (e) {
-            aiResponseDiv.innerText = "エラー: " + e.message;
-        }
-    }
+        // DOM要素
+        const micButton = document.getElementById('micButton');
+        const statusText = document.getElementById('statusText');
+        const transcriptBox = document.getElementById('transcriptBox');
+        const loading = document.getElementById('loading');
+        const resultContainer = document.getElementById('resultContainer');
+        const tableWrapper = document.getElementById('tableWrapper');
+        const copyButton = document.getElementById('copyButton');
+        const newMemoButton = document.getElementById('newMemoButton');
+        const errorAlert = document.getElementById('errorAlert');
+        const successAlert = document.getElementById('successAlert');
 
-    async function copyResult() {
-        await navigator.clipboard.writeText(aiResponseDiv.innerText);
-        alert("コピーしました！スプレッドシートに貼れます。");
-    }
-</script>
+        // 音声認識の設定
+        let recognition;
+        let isRecording = false;
+        let transcript = '';
+
+        // Web Speech APIの初期化
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.lang = 'ja-JP';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcriptPiece = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcriptPiece + ' ';
+                    } else {
+                        interimTranscript += transcriptPiece;
+                    }
+                }
+
+                transcript = finalTranscript || interimTranscript;
+                transcriptBox.textContent = transcript;
+                transcriptBox.classList.add('show');
+            };
+
+            recognition.onerror = (event) => {
+                console.error('音声認識エラー:', event.error);
+                showError('音声認識エラー: ' + event.error);
+                stopRecording();
+            };
+
+            recognition.onend = () => {
+                if (isRecording) {
+                    // 録音が意図せず終了した場合は再開
+                    recognition.start();
+                }
+            };
+        } else {
+            showError('このブラウザは音声認識に対応していません。Google Chromeをお使いください。');
+        }
+
+        // マイクボタンのイベント
+        micButton.addEventListener('mousedown', startRecording);
+        micButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startRecording();
+        });
+
+        micButton.addEventListener('mouseup', stopRecording);
+        micButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            stopRecording();
+        });
+
+        micButton.addEventListener('mouseleave', () => {
+            if (isRecording) stopRecording();
+        });
+
+        function startRecording() {
+            if (!recognition) return;
+            
+            isRecording = true;
+            transcript = '';
+            transcriptBox.textContent = '';
+            transcriptBox.classList.remove('show');
+            resultContainer.classList.remove('show');
+            errorAlert.classList.remove('show');
+            successAlert.classList.remove('show');
+
+            micButton.classList.add('recording');
+            statusText.textContent = '🔴 録音中... (離すと送信)';
+
+            try {
+                recognition.start();
+            } catch (e) {
+                console.error('録音開始エラー:', e);
+            }
+        }
+
+        function stopRecording() {
+            if (!isRecording) return;
+
+            isRecording = false;
+            micButton.classList.remove('recording');
+            statusText.textContent = 'タップして録音開始';
+
+            try {
+                recognition.stop();
+            } catch (e) {
+                console.error('録音停止エラー:', e);
+            }
+
+            if (transcript.trim()) {
+                processWithClaude(transcript);
+            }
+        }
+
+        // Gemini APIで処理
+        async function processWithClaude(text) {
+            if (GEMINI_API_KEY === 'YOUR_API_KEY_HERE') {
+                showError('APIキーが設定されていません。コード内のGEMINI_API_KEYを設定してください。');
+                return;
+            }
+
+            loading.classList.add('show');
+
+            const prompt = `以下の現場メモを分析し、「項目名」「詳細」「区分」の3列のMarkdown表形式で整理してください。
+
+区分は以下のいずれかを使用:
+- 在庫: 自分の在庫から持参すべきもの
+- 購入: 新規に購入が必要なもの
+- タスク: 作業や確認事項
+
+現場メモ:
+${text}
+
+必ずMarkdown形式の表で出力してください。例:
+| 項目名 | 詳細 | 区分 |
+|--------|------|------|
+| 配管パイプ | 2m×3本 | 在庫 |
+| シーリング材 | 白色、2本 | 購入 |
+| 防水確認 | ベランダ | タスク |`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`APIエラー: ${response.status} - ${errorData.error?.message || response.statusText}`);
+                }
+
+                const data = await response.json();
+                const resultText = data.candidates[0].content.parts[0].text;
+
+                loading.classList.remove('show');
+                displayResult(resultText);
+
+            } catch (error) {
+                console.error('Gemini API エラー:', error);
+                loading.classList.remove('show');
+                showError('AI処理中にエラーが発生しました: ' + error.message);
+            }
+        }
+
+        // 結果を表示
+        function displayResult(markdownText) {
+            // Markdown表をHTMLテーブルに変換
+            const lines = markdownText.trim().split('\n');
+            const tableLines = lines.filter(line => line.includes('|'));
+
+            if (tableLines.length < 2) {
+                showError('表形式のデータを取得できませんでした');
+                return;
+            }
+
+            let html = '<table>';
+            
+            tableLines.forEach((line, index) => {
+                if (index === 1) return; // 区切り行をスキップ
+
+                const cells = line.split('|')
+                    .filter(cell => cell.trim())
+                    .map(cell => cell.trim());
+
+                if (index === 0) {
+                    html += '<tr>';
+                    cells.forEach(cell => {
+                        html += `<th>${cell}</th>`;
+                    });
+                    html += '</tr>';
+                } else {
+                    html += '<tr>';
+                    cells.forEach((cell, cellIndex) => {
+                        if (cellIndex === 2) { // 区分列
+                            let badgeClass = 'badge-task';
+                            if (cell.includes('在庫')) badgeClass = 'badge-stock';
+                            else if (cell.includes('購入')) badgeClass = 'badge-purchase';
+                            html += `<td><span class="badge ${badgeClass}">${cell}</span></td>`;
+                        } else {
+                            html += `<td>${cell}</td>`;
+                        }
+                    });
+                    html += '</tr>';
+                }
+            });
+
+            html += '</table>';
+            tableWrapper.innerHTML = html;
+            resultContainer.classList.add('show');
+
+            // クリップボードコピー用のデータを保存
+            resultContainer.dataset.markdown = markdownText;
+        }
+
+        // クリップボードにコピー
+        copyButton.addEventListener('click', async () => {
+            const markdownText = resultContainer.dataset.markdown;
+            
+            if (!markdownText) {
+                showError('コピーするデータがありません');
+                return;
+            }
+
+            // TSV形式に変換(Excel/スプレッドシート互換)
+            const lines = markdownText.trim().split('\n');
+            const tableLines = lines.filter(line => line.includes('|'));
+            
+            const tsvData = tableLines
+                .filter((line, index) => index !== 1) // 区切り行を除外
+                .map(line => {
+                    return line.split('|')
+                        .filter(cell => cell.trim())
+                        .map(cell => cell.trim())
+                        .join('\t');
+                })
+                .join('\n');
+
+            try {
+                await navigator.clipboard.writeText(tsvData);
+                showSuccess('✅ クリップボードにコピーしました!ExcelやGoogleスプレッドシートに貼り付けできます。');
+            } catch (error) {
+                console.error('コピーエラー:', error);
+                showError('コピーに失敗しました: ' + error.message);
+            }
+        });
+
+        // 新しいメモボタン
+        newMemoButton.addEventListener('click', () => {
+            resultContainer.classList.remove('show');
+            transcriptBox.classList.remove('show');
+            transcript = '';
+            errorAlert.classList.remove('show');
+            successAlert.classList.remove('show');
+        });
+
+        // エラー表示
+        function showError(message) {
+            errorAlert.textContent = '❌ ' + message;
+            errorAlert.classList.add('show');
+            setTimeout(() => {
+                errorAlert.classList.remove('show');
+            }, 5000);
+        }
+
+        // 成功メッセージ表示
+        function showSuccess(message) {
+            successAlert.textContent = message;
+            successAlert.classList.add('show');
+            setTimeout(() => {
+                successAlert.classList.remove('show');
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
